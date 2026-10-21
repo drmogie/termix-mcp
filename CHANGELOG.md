@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026.10.20.02
+
+- First public release on GitHub.
+- Added PROJECT_NOTES.md. Version fields now match everywhere.
+
 ## 2026.10.20.01
 
 - Now installs from GitHub with a git URL in the Claude config.

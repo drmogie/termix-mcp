@@ -1,6 +1,6 @@
 # Termix MCP
 
-![Version](https://img.shields.io/badge/version-2026.10.20.01-blue)
+![Version](https://img.shields.io/badge/version-2026.10.20.02-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 A small tool that lets Claude read and change a
