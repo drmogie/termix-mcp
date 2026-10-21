@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "termix-mcp"
+version = "2026.10.20.1"
+description = "MCP tool that lets Claude read and change a Termix server through its API."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "drmogie" }]
+dependencies = ["mcp>=1.2,<2"]
+
+[project.scripts]
+termix-mcp = "termix_mcp:main"
+
+[tool.setuptools]
+packages = ["termix_mcp"]
