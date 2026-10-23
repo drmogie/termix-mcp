@@ -24,12 +24,13 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-__version__ = "2026.10.20.02"
+__version__ = "2026.10.22.01"
 
 mcp = FastMCP("termix")
 
 HOSTS_PATH = "/host/db/host"
 CREDENTIALS_PATH = "/credentials"
+RBAC_PATH = "/rbac"
 
 # Field names whose values are hidden in everything this tool prints.
 SECRET_RE = re.compile(
@@ -275,6 +276,134 @@ def termix_credentials(action: str = "list", credential_id: int | str | None = N
             return {"ok": False, "error": "credential_id is required for get."}
         return _request("GET", f"{CREDENTIALS_PATH}/{credential_id}")
     return _request("GET", CREDENTIALS_PATH)
+
+
+@mcp.tool()
+def termix_roles(action: str = "list", role_id: int | str | None = None,
+                 user_id: int | str | None = None, host_id: int | str | None = None,
+                 access_id: int | str | None = None, folder: str | None = None,
+                 name: str | None = None, display_name: str | None = None,
+                 description: str | None = None, role_ids: list[int] | None = None,
+                 user_ids: list[int] | None = None, permission_level: str = "connect",
+                 duration_hours: int | None = None, confirm: bool = False,
+                 confirm_phrase: str = "") -> dict[str, Any]:
+    """Manage Termix roles, who is in them, and which hosts they can reach.
+
+    Read actions (run right away):
+      list            all roles
+      members         users in a role (needs role_id)
+      user_roles      roles of one user (needs user_id)
+      users           all users, to find a user_id
+      host_access     who a host is shared with (needs host_id)
+      folder_access   standing share rules for a folder (needs folder)
+    Change actions (need confirm=true, so ask the user first):
+      create          needs name (lowercase, digits, _ or -) and display_name
+      update          needs role_id, and display_name and/or description
+      assign          needs role_id and user_id
+      share_host      needs host_id, and role_ids and/or user_ids
+      share_folder    needs folder, and role_ids and/or user_ids (also covers
+                      hosts added to that folder later)
+      update_access   needs host_id, access_id, permission_level and/or duration_hours
+    Destructive actions (need confirm=true and confirm_phrase="METHOD /path"):
+      delete          delete a role (needs role_id)
+      unassign        take a role off a user (needs role_id and user_id)
+      revoke_access   remove a host share (needs host_id and access_id)
+      delete_folder_rule  remove a folder share rule (needs access_id)
+    Sharing uses the host's saved credential. No passwords pass through here.
+    """
+    a = (action or "list").lower()
+    R = RBAC_PATH
+
+    def need(**kw: Any) -> str:
+        miss = [k for k, v in kw.items() if v in (None, "", [])]
+        return ("Missing: " + ", ".join(miss) + ".") if miss else ""
+
+    def targets() -> list[dict[str, Any]]:
+        return ([{"type": "role", "id": r} for r in (role_ids or [])] +
+                [{"type": "user", "id": u} for u in (user_ids or [])])
+
+    def run(method: str, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
+        gate = _gate(method, path, confirm, confirm_phrase)
+        return gate or _request(method, path, body=body)
+
+    if a == "list":
+        return _request("GET", f"{R}/roles")
+    if a == "members":
+        e = need(role_id=role_id)
+        return {"ok": False, "error": e} if e else _request("GET", f"{R}/roles/{role_id}/members")
+    if a == "user_roles":
+        e = need(user_id=user_id)
+        return {"ok": False, "error": e} if e else _request("GET", f"{R}/users/{user_id}/roles")
+    if a == "users":
+        return _request("GET", "/users/list")
+    if a == "host_access":
+        e = need(host_id=host_id)
+        return {"ok": False, "error": e} if e else _request("GET", f"{R}/host/{host_id}/access")
+    if a == "folder_access":
+        e = need(folder=folder)
+        if e:
+            return {"ok": False, "error": e}
+        r = _request("GET", f"{R}/folder/access", query={"folder": folder})
+        return r
+    if a == "create":
+        e = need(name=name, display_name=display_name)
+        if e:
+            return {"ok": False, "error": e}
+        body = {"name": name, "displayName": display_name}
+        if description:
+            body["description"] = description
+        return run("POST", f"{R}/roles", body)
+    if a == "update":
+        e = need(role_id=role_id)
+        if e or not (display_name or description):
+            return {"ok": False, "error": e or "Give display_name and/or description."}
+        body = {}
+        if display_name:
+            body["displayName"] = display_name
+        if description:
+            body["description"] = description
+        return run("PUT", f"{R}/roles/{role_id}", body)
+    if a == "delete":
+        e = need(role_id=role_id)
+        return {"ok": False, "error": e} if e else run("DELETE", f"{R}/roles/{role_id}")
+    if a == "assign":
+        e = need(role_id=role_id, user_id=user_id)
+        if e:
+            return {"ok": False, "error": e}
+        try:
+            rid = int(role_id)  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            return {"ok": False, "error": "role_id must be a number."}
+        return run("POST", f"{R}/users/{user_id}/roles", {"roleId": rid})
+    if a == "unassign":
+        e = need(role_id=role_id, user_id=user_id)
+        return {"ok": False, "error": e} if e else run("DELETE", f"{R}/users/{user_id}/roles/{role_id}")
+    if a in ("share_host", "share_folder"):
+        e = need(host_id=host_id) if a == "share_host" else need(folder=folder)
+        if e or not targets():
+            return {"ok": False, "error": e or "Give role_ids and/or user_ids."}
+        body: dict[str, Any] = {"targets": targets(), "permissionLevel": permission_level}
+        if duration_hours is not None:
+            body["durationHours"] = duration_hours
+        if a == "share_host":
+            return run("POST", f"{R}/host/{host_id}/share", body)
+        body["folder"] = folder
+        return run("POST", f"{R}/folder/share", body)
+    if a == "update_access":
+        e = need(host_id=host_id, access_id=access_id)
+        if e:
+            return {"ok": False, "error": e}
+        body = {"permissionLevel": permission_level}
+        if duration_hours is not None:
+            body["durationHours"] = duration_hours
+        return run("PATCH", f"{R}/host/{host_id}/access/{access_id}", body)
+    if a == "revoke_access":
+        e = need(host_id=host_id, access_id=access_id)
+        return {"ok": False, "error": e} if e else run("DELETE", f"{R}/host/{host_id}/access/{access_id}")
+    if a == "delete_folder_rule":
+        e = need(access_id=access_id)
+        return {"ok": False, "error": e} if e else run("DELETE", f"{R}/folder/access/{access_id}")
+    return {"ok": False, "error": "Unknown action. See the tool description for the list."}
 
 
 @mcp.tool()

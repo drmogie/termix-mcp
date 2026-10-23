@@ -13,3 +13,4 @@
 - 2026.10.19.01 - first version (local only).
 - 2026.10.20.01 - git URL install in Claude config (local only).
 - 2026.10.20.02 - repo created on GitHub and first release pushed.
+- 2026.10.22.01 - termix_roles tool (roles, assign users, share hosts/folders). Not yet tested on the live server.

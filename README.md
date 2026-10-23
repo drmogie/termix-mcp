@@ -1,6 +1,6 @@
 # Termix MCP
 
-![Version](https://img.shields.io/badge/version-2026.10.20.02-blue)
+![Version](https://img.shields.io/badge/version-2026.10.22.01-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 A small tool that lets Claude read and change a
@@ -14,6 +14,7 @@ It runs on your own computer. Your API key stays on your computer.
 - List, read, add, change, and delete hosts (termix_hosts).
 - Add many hosts at once (termix_add_many_hosts).
 - List stored credentials, with secrets hidden (termix_credentials).
+- Manage roles: make roles, put users in them, share hosts or folders with a role (termix_roles).
 - Call any other Termix API route (termix_call).
 
 ## Safety

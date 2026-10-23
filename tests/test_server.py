@@ -131,6 +131,23 @@ class T(unittest.TestCase):
         self.assertFalse(server.termix_call("POST", "/credentials", body={"password": "x"}, confirm=True)["ok"])
         self.assertFalse(server.termix_call("POST", "/users/login", body={}, confirm=True)["ok"])
 
+    def test_roles_create_needs_confirm(self):
+        r = server.termix_roles("create", name="staff", display_name="Staff")
+        self.assertTrue(r.get("needs_confirm"))
+
+    def test_roles_delete_needs_phrase(self):
+        r = server.termix_roles("delete", role_id=5, confirm=True)
+        self.assertTrue(r.get("needs_confirm"))
+        self.assertIn("DELETE /rbac/roles/5", r["message"])
+
+    def test_roles_missing_fields(self):
+        self.assertFalse(server.termix_roles("assign", role_id=5)["ok"])
+        self.assertFalse(server.termix_roles("share_host", host_id=1)["ok"])
+
+    def test_roles_share_needs_confirm(self):
+        r = server.termix_roles("share_host", host_id=1, role_ids=[2])
+        self.assertTrue(r.get("needs_confirm"))
+
     def test_call_get_runs(self):
         self.assertTrue(server.termix_call("GET", "/health")["ok"])
 

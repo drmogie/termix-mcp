@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.10.22.01
+
+- New tool: termix_roles. Make and edit roles, put users in roles,
+  share hosts or folders with a role or user, and remove shares.
+- Uses the Termix /rbac routes. Change and delete actions need confirm.
+
 ## 2026.10.20.02
 
 - First public release on GitHub.

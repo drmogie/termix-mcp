@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "termix-mcp"
-version = "2026.10.20.02"
+version = "2026.10.22.01"
 description = "MCP tool that lets Claude read and change a Termix server through its API."
 readme = "README.md"
 requires-python = ">=3.10"
