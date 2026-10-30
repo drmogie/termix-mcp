@@ -6,3 +6,4 @@ build/
 *.egg-info/
 .DS_Store
 Thumbs.db
+PROJECT_NOTES.md

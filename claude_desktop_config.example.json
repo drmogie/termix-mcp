@@ -4,7 +4,7 @@
       "command": "uvx",
       "args": ["--from", "git+https://github.com/drmogie/termix-mcp", "termix-mcp"],
       "env": {
-        "TERMIX_URL": "http://172.16.20.42:8081",
+        "TERMIX_URL": "http://192.168.1.142:8081",
         "TERMIX_API_KEY": "PUT-YOUR-TERMIX-API-KEY-HERE-IN-THIS-FILE-ONLY"
       }
     }

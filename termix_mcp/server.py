@@ -6,7 +6,7 @@ manager) through its HTTP API.
 Settings come from environment variables only. The API key is never written
 to disk, never printed, and never sent anywhere except the Termix server.
 
-  TERMIX_URL         Example: http://172.16.20.42:8081   (required)
+  TERMIX_URL         Example: http://192.168.1.142:8081   (required)
   TERMIX_API_KEY     API key from the Termix web page (starts with tmx_)  (required)
   TERMIX_VERIFY_TLS  "false" to skip TLS checks for a self-signed https URL
 """

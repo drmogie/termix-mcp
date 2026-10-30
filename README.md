@@ -45,7 +45,7 @@ If it ever lands in a chat, delete that key and make a new one.
 Open the Claude desktop app settings and find the MCP servers config file.
 Add the block from `claude_desktop_config.example.json`. Change the key.
 
-- `TERMIX_URL`: your server, like `http://172.16.20.42:8081`
+- `TERMIX_URL`: your server, like `http://192.168.1.142:8081`
 - `TERMIX_API_KEY`: your key
 - `TERMIX_VERIFY_TLS`: set to `false` only for a self-signed https address
 
